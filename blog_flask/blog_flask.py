@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import bcrypt
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
@@ -33,8 +34,11 @@ def close_db(error):
 
 def init_db():
     db = get_db()
+    password = bcrypt.hashpw(b'adminpass', bcrypt.gensalt())
     with app.open_resource('schema.sql', mode='r') as f:
         db.cursor().executescript(f.read())
+    # db_command = "insert into users (username, password) values ('admin', {})".format(password.decode())
+    db.execute("insert into users (username, password) values ('admin', ?)", [password])
     db.commit()
 
 
@@ -52,7 +56,6 @@ def show_entries():
     entries = cur.fetchall()
     return render_template('show_entries.html', entries=entries)
 
-
 @app.route('/add', methods=['POST'])
 def add_entry():
     if not session.get('logged_in'):
@@ -69,14 +72,18 @@ def add_entry():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
-        else:
-            session['logged_in'] = True
-            flash('You were logged in')
-            return redirect(url_for('show_entries'))
+        db = get_db()
+        cur = db.execute('select username, password from users order by id desc')
+        users = cur.fetchall()
+        print(users[0][0])
+        print(type(users[0]))
+        for user in users:
+            if request.form['username'] == user[0]:
+                if bcrypt.checkpw(request.form['password'].encode(), user[1].encode()):
+                    session['logged_in'] = True
+                    flash('You were logged in')
+                    return redirect(url_for('show_entries'))
+        error = 'Invalid user data'
     return render_template('login.html', error=error)
 
 
@@ -86,6 +93,21 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_entries'))
 
+
+@app.route('/admin', methods=['GET', 'POST'])
+def add_user():
+    if not session.get('logged_in'):
+        abort(401)
+
+    if request.method == 'POST':
+        password = request.form['password'].encode()
+        print(password)
+        print(type(password))
+        password = bcrypt.hashpw(password, bcrypt.gensalt())
+        db = get_db()
+        db.execute("insert into users (username, password) values (?, ?)", [request.form['username'], password])
+        db.commit()
+    return render_template('admin.html')
 
 app.config.update(dict(
     DATABASE = os.path.join(app.root_path, 'blog_flask.db'),

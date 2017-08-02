@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_user') }}" method=post class=add-entry>
+      <dl>
+        <dt>Title:
+        <dd><input type=text size=30 name=username>
+        <dt>Text:
+        <dd><input type=text size=30 name=password>
+        <dd><input type=submit value=Create>
+      </dl>
+    </form>
+  {% endif %}
+{% endblock %}
