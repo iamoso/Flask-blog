@@ -56,6 +56,7 @@ def show_entries():
     entries = cur.fetchall()
     return render_template('show_entries.html', entries=entries)
 
+
 @app.route('/add', methods=['POST'])
 def add_entry():
     if not session.get('logged_in'):
@@ -67,6 +68,15 @@ def add_entry():
     flash('New entry was succesfully posted')
     return redirect(url_for('show_entries'))
 
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        db = get_db()
+        cur = db.execute('select title, text from entries where title like ?', ['%' + request.form['search'] + '%'])
+        entries = cur.fetchall()
+        return render_template('search.html', entries=entries)
+    return redirect(url_for('show_entries'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
