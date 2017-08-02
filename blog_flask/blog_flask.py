@@ -69,14 +69,15 @@ def add_entry():
     return redirect(url_for('show_entries'))
 
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search', methods=['POST'])
 def search():
-    if request.method == 'POST':
+    # if request.method == 'POST':
         db = get_db()
-        cur = db.execute('select title, text from entries where title like ?', ['%' + request.form['search'] + '%'])
+        cur = db.execute('select title, text from entries where title like ? or text like ?', ['%' + request.form['search'] + '%', '%' + request.form['search'] + '%'])
         entries = cur.fetchall()
         return render_template('search.html', entries=entries)
-    return redirect(url_for('show_entries'))
+    # return redirect(url_for('show_entries'))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
