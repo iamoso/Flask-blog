@@ -16,7 +16,7 @@
   </form>
   <ul class=entries>
   {% for entry in entries %}
-    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe|truncate(255, True) }}
+    <li><h2><a href="{{ entry.id }}" style="text-decoration: none">{{ entry.title }}</a></h2>{{ entry.text|safe|truncate(255, True) }}
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}

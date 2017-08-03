@@ -52,8 +52,18 @@ def initdb_command():
 @app.route('/')
 def show_entries():
     db = get_db()
-    cur = db.execute('select title, text from entries order by id desc')
+    cur = db.execute('select * from entries order by id desc')
     entries = cur.fetchall()
+    return render_template('show_entries.html', entries=entries)
+
+
+@app.route('/<string:id>')
+def post_id(id = None):
+    if id != None:
+        db = get_db()
+        cur = db.execute('select * from entries where id = ?', id)
+        entries = cur.fetchall()
+        return render_template('post.html', entries=entries)
     return render_template('show_entries.html', entries=entries)
 
 
